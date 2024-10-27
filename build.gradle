@@ -23,6 +23,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.postgresql:postgresql:42.7.4'
 	implementation 'org.apache.groovy:groovy:4.0.23'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 	runtimeOnly 'com.h2database:h2'
@@ -31,6 +32,7 @@ dependencies {
 	testImplementation 'org.spockframework:spock-spring:2.4-M4-groovy-4.0'
 	testImplementation 'org.spockframework:spock-core:2.4-M4-groovy-4.0'
 	testImplementation 'org.spockframework:spock-junit4:2.4-M4-groovy-4.0'
+	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'org.springframework:spring-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
