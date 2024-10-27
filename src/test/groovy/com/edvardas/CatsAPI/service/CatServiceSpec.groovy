@@ -6,15 +6,36 @@ import com.edvardas.CatsAPI.repository.CatRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.PageRequest
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.transaction.annotation.Transactional
+import org.testcontainers.containers.PostgreSQLContainer
 import spock.lang.Specification
 
 import java.time.LocalDate
 import java.time.ZoneOffset
 
 @SpringBootTest
+@ActiveProfiles("prod")
 @Transactional
 class CatServiceSpec extends Specification {
+
+    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:12")
+            .withDatabaseName("catsdb")
+            .withUsername("admin")
+            .withPassword("admin")
+
+    static {
+        postgresContainer.start()
+    }
+
+    @DynamicPropertySource
+    static void setProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl)
+        registry.add("spring.datasource.username", postgresContainer::getUsername)
+        registry.add("spring.datasource.password", postgresContainer::getPassword)
+    }
 
     @Autowired
     CatService catService
