@@ -11,29 +11,38 @@ import java.util.Date;
 @Entity
 public class Cat {
 
+    @Column
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column
     @NotNull
     @Size(min = 1, max = 50)
     private String name;
 
+    @Column
     @NotNull
     @Size(min = 1, max = 50)
     private String breed;
 
+    @Column
     @NotNull
     @Min(0)
     private Integer age;
 
+    @Column
     @NotNull
     @Size(min = 1, max = 20)
     private String color;
 
+    @Column
     @NotNull
     @Past
     private Date dateOfBirth;
+
+    public Cat() {
+    }
 
     public Long getId() {
         return id;
@@ -47,7 +56,7 @@ public class Cat {
         return breed;
     }
 
-    public int getAge() {
+    public Integer  getAge() {
         return age;
     }
 
@@ -71,7 +80,7 @@ public class Cat {
         this.breed = breed;
     }
 
-    public void setAge(int age) {
+    public void setAge(Integer  age) {
         this.age = age;
     }
 

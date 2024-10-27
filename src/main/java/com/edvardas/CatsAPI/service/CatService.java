@@ -3,9 +3,11 @@ package com.edvardas.CatsAPI.service;
 import com.edvardas.CatsAPI.exception.CatNotFoundException;
 import com.edvardas.CatsAPI.model.Cat;
 import com.edvardas.CatsAPI.repository.CatRepository;
-import org.springframework.data.domain.Page;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 @Service
@@ -13,6 +15,7 @@ public class CatService {
 
     private final CatRepository catRepository;
 
+    @Autowired
     public CatService(CatRepository catRepository) {
         this.catRepository = catRepository;
     }
@@ -21,8 +24,8 @@ public class CatService {
         return catRepository.save(cat);
     }
 
-    public Page<Cat> getAllCats(Pageable pageable) {
-        return catRepository.findAll(pageable);
+    public List<Cat> getAllCats(Pageable pageable) {
+        return catRepository.findAll(pageable).getContent();
     }
 
     public Cat getCatById(Long id) {
@@ -40,9 +43,8 @@ public class CatService {
     }
 
     public void deleteCat(Long id) {
-        if (!catRepository.existsById(id)) {
-            throw new CatNotFoundException("Cat not found with id: " + id);
-        }
-        catRepository.deleteById(id);
+        Cat cat = catRepository.findById(id)
+                .orElseThrow(() -> new CatNotFoundException("Cat not found with id " + id));
+        catRepository.delete(cat);
     }
 }

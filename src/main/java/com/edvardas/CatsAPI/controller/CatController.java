@@ -4,21 +4,20 @@ import com.edvardas.CatsAPI.model.Cat;
 import com.edvardas.CatsAPI.service.CatService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
 @RequestMapping("/cats")
 public class CatController {
 
-    private final CatService catService;
-
-    public CatController(CatService catService) {
-        this.catService = catService;
-    }
+    @Autowired
+    private CatService catService;
 
     @Operation(summary = "Create a new Cat")
     @PostMapping
@@ -28,7 +27,7 @@ public class CatController {
 
     @Operation(summary = "Get all cats")
     @GetMapping
-    public ResponseEntity<Page<Cat>> getAllCats(Pageable pageable) {
+    public ResponseEntity<List<Cat>> getAllCats(Pageable pageable) {
         return ResponseEntity.ok(catService.getAllCats(pageable));
     }
 
