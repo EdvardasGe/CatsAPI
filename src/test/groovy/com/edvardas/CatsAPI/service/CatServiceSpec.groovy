@@ -27,7 +27,7 @@ class CatServiceSpec extends Specification {
         Cat result = catService.createCat(cat)
 
         then:
-        1 * catRepository.save(cat) >> { Cat c -> c.id = 1L; return c }  // Simulate save operation
+        1 * catRepository.save(cat) >> { Cat c -> c.id = 1L; return c }
         result.id != null
         result.name == "Mellow"
     }

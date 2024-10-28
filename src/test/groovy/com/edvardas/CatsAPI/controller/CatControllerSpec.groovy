@@ -38,7 +38,7 @@ class CatControllerSpec extends Specification {
         given:
         Cat cat1 = new Cat(name: "Mariot", breed: "Persian", age: 6, color: "Yellow")
         List<Cat> catsList = [cat1]
-        catService.getAllCats(_ as Pageable) >> catsList // Mock the service to return a list of cats
+        catService.getAllCats(_ as Pageable) >> catsList
 
         when:
         ResponseEntity<List<Cat>> response = catController.getAllCats(PageRequest.of(0, 10))
@@ -53,7 +53,7 @@ class CatControllerSpec extends Specification {
         given:
         Long catId = 1L
         Cat cat = new Cat(id: catId, name: "Falco", breed: "Maine", age: 1, color: "Brown")
-        catService.getCatById(catId) >> cat // Mock the service to return the specific cat
+        catService.getCatById(catId) >> cat
 
         when:
         ResponseEntity<Cat> response = catController.getCatById(catId)
@@ -83,7 +83,7 @@ class CatControllerSpec extends Specification {
         Long catId = 1L
         Cat existingCat = new Cat(id: catId, name: "Whiskers", breed: "Tabby", age: 3, color: "Brown")
         Cat updatedCat = new Cat(name: "Whiskers", breed: "Siamese", age: 4, color: "White")
-        catService.updateCat(catId, updatedCat) >> existingCat.with { it.name = "Whiskers"; it.breed = "Siamese"; it.age = 4; it.color = "White"; it } // Mock the update
+        catService.updateCat(catId, updatedCat) >> existingCat.with { it.name = "Whiskers"; it.breed = "Siamese"; it.age = 4; it.color = "White"; it }
 
         when:
         ResponseEntity<Cat> response = catController.updateCat(catId, updatedCat)
@@ -98,7 +98,7 @@ class CatControllerSpec extends Specification {
         given:
         Long catId = 999L
         Cat updatedCat = new Cat(name: "Mari", breed: "Bombay", age: 7, color: "Black")
-        catService.updateCat(catId, updatedCat) >> { throw new CatNotFoundException("Cat not found") } // Mock to throw an exception
+        catService.updateCat(catId, updatedCat) >> { throw new CatNotFoundException("Cat not found") }
 
         when:
         ResponseEntity<Cat> response = catController.updateCat(catId, updatedCat)
@@ -110,19 +110,19 @@ class CatControllerSpec extends Specification {
     def "should delete a cat"() {
         given:
         Long catId = 1L
-        catService.deleteCat(catId) // Just mock the deletion
+        catService.deleteCat(catId)
 
         when:
         ResponseEntity<Void> response = catController.deleteCat(catId)
 
         then:
-        response.statusCodeValue == 204 // No content
+        response.statusCodeValue == 204
     }
 
     def "should return not found when deleting a cat that does not exist"() {
         given:
         Long catId = 999L
-        catService.deleteCat(catId) >> { throw new CatNotFoundException("Cat not found") } // Mock to throw an exception
+        catService.deleteCat(catId) >> { throw new CatNotFoundException("Cat not found") }
 
         when:
         ResponseEntity<Void> response = catController.deleteCat(catId)
