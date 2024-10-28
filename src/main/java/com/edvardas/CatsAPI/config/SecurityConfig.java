@@ -23,7 +23,7 @@ public class SecurityConfig {
                                 .requestMatchers("/cats/**").authenticated()
                                 .anyRequest().permitAll()
                 )
-                .httpBasic(Customizer.withDefaults()); // Enables Basic Authentication
+                .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }

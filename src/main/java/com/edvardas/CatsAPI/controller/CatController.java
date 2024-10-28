@@ -1,5 +1,6 @@
 package com.edvardas.CatsAPI.controller;
 
+import com.edvardas.CatsAPI.exception.CatNotFoundException;
 import com.edvardas.CatsAPI.model.Cat;
 import com.edvardas.CatsAPI.service.CatService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,21 +35,33 @@ public class CatController {
     @Operation(summary = "Get cat by Id")
     @GetMapping("/{id}")
     public ResponseEntity<Cat> getCatById(@PathVariable Long id) {
-        Cat cat = catService.getCatById(id);
-        return cat != null ? ResponseEntity.ok(cat) : ResponseEntity.notFound().build();
+        try {
+            Cat cat = catService.getCatById(id);
+            return ResponseEntity.ok(cat);
+        } catch (CatNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @Operation(summary = "Update a cat")
     @PutMapping("/{id}")
-    public ResponseEntity<Cat> updateCat(@PathVariable Long id,@Valid @RequestBody Cat catDetails) {
-        Cat updatedCat = catService.updateCat(id, catDetails);
-        return updatedCat != null ? ResponseEntity.ok(updatedCat) : ResponseEntity.notFound().build();
+    public ResponseEntity<Cat> updateCat(@PathVariable Long id, @Valid @RequestBody Cat catDetails) {
+        try {
+            Cat updatedCat = catService.updateCat(id, catDetails);
+            return ResponseEntity.ok(updatedCat);
+        } catch (CatNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @Operation(summary = "Delete a cat")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCat(@PathVariable Long id) {
-        catService.deleteCat(id);
-        return ResponseEntity.noContent().build();
+        try {
+            catService.deleteCat(id);
+            return ResponseEntity.noContent().build();
+        } catch (CatNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
