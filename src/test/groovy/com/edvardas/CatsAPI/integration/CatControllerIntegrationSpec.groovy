@@ -24,9 +24,9 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 class CatControllerIntegrationSpec extends Specification {
 
     static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:12")
-            .withDatabaseName("catsdb")
-            .withUsername("admin")
-            .withPassword("admin")
+            .withDatabaseName(TestConstants.DB_NAME)
+            .withUsername(TestConstants.DB_USERNAME)
+            .withPassword(TestConstants.DB_PASSWORD)
 
     static {
         postgresContainer.start()

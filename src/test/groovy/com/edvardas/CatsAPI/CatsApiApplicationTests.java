@@ -1,5 +1,6 @@
 package com.edvardas.CatsAPI;
 
+import com.edvardas.CatsAPI.constants.TestConstants;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -12,9 +13,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 class CatsApiApplicationTests {
 
 	static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:12")
-			.withDatabaseName("catsdb")
-			.withUsername("admin")
-			.withPassword("admin");
+			.withDatabaseName(TestConstants.DB_NAME)
+			.withUsername(TestConstants.DB_USERNAME)
+			.withPassword(TestConstants.DB_PASSWORD);
 
 	static {
 		postgresContainer.start();

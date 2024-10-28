@@ -1,5 +1,6 @@
 package com.edvardas.CatsAPI.integration
 
+import com.edvardas.CatsAPI.constants.TestConstants
 import com.edvardas.CatsAPI.exception.CatNotFoundException
 import com.edvardas.CatsAPI.model.Cat
 import com.edvardas.CatsAPI.repository.CatRepository
@@ -23,9 +24,9 @@ import java.time.ZoneOffset
 class CatServiceIntegrationSpec extends Specification {
 
     static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:12")
-            .withDatabaseName("catsdb")
-            .withUsername("admin")
-            .withPassword("admin")
+            .withDatabaseName(TestConstants.DB_NAME)
+            .withUsername(TestConstants.DB_USERNAME)
+            .withPassword(TestConstants.DB_PASSWORD)
 
     static {
         postgresContainer.start()
