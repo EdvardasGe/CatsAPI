@@ -1,135 +1,133 @@
 package com.edvardas.CatsAPI.controller
 
-import com.edvardas.CatsAPI.constants.TestConstants
+import com.edvardas.CatsAPI.exception.CatNotFoundException
 import com.edvardas.CatsAPI.model.Cat
-import com.edvardas.CatsAPI.repository.CatRepository
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.test.context.support.WithMockUser
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
-import org.springframework.test.web.servlet.MockMvc
-import org.testcontainers.containers.PostgreSQLContainer
+import com.edvardas.CatsAPI.service.CatService
+import org.springframework.data.domain.Pageable
+import org.springframework.http.ResponseEntity
+import org.springframework.data.domain.PageRequest
 import spock.lang.Specification
+import spock.lang.Subject
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-
-@SpringBootTest
-@ActiveProfiles("prod")
-@AutoConfigureMockMvc
 class CatControllerSpec extends Specification {
 
-    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:12")
-            .withDatabaseName("catsdb")
-            .withUsername("admin")
-            .withPassword("admin")
+    CatService catService = Mock()
 
-    static {
-        postgresContainer.start()
-    }
+    @Subject
+    CatController catController = new CatController(catService: catService)
 
-    @DynamicPropertySource
-    static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl)
-        registry.add("spring.datasource.username", postgresContainer::getUsername)
-        registry.add("spring.datasource.password", postgresContainer::getPassword)
-    }
-
-    @Autowired
-    MockMvc mockMvc
-
-    @Autowired
-    CatRepository catRepository
-
-    def setup() {
-        catRepository.deleteAll()
-    }
-
-    @WithMockUser(username = TestConstants.USERNAME, password = TestConstants.PASSWORD)
-    def "POST /cats should create a new cat"() {
-        expect:
-        mockMvc.perform(post("/cats")
-                .with(csrf())
-                .contentType("application/json")
-                .content('{"name":"Oki","breed":"Ocicat","age":4,"color":"Gray","dateOfBirth":"2024-10-02"}'))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath('$.name').value("Oki"))
-                .andExpect(jsonPath('$.breed').value("Ocicat"))
-    }
-
-    @WithMockUser(username = TestConstants.USERNAME, password = TestConstants.PASSWORD)
-    def "GET /cats should return list of cats"() {
+    def "should create a new cat"() {
         given:
-        catRepository.save(new Cat(name: "Mellow", breed: "Abyssinian", age: 3, color: "Orange", dateOfBirth: new Date()))
+        Cat cat = new Cat(name: "Mellow", breed: "Abyssinian", age: 3, color: "Orange")
+        Cat savedCat = new Cat(id: 1L, name: "Mellow", breed: "Abyssinian", age: 3, color: "Orange")
 
-        expect:
-        mockMvc.perform(get("/cats").param("page", "0").param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath('$[0].name').value("Mellow"))
+        catService.createCat(cat) >> savedCat
+
+        when:
+        ResponseEntity<Cat> response = catController.createCat(cat)
+
+        then:
+        response.statusCodeValue == 200
+        response.body != null
+        response.body.id == 1L
+        response.body.name == "Mellow"
+        response.body.breed == "Abyssinian"
     }
 
-    @WithMockUser(username = TestConstants.USERNAME, password = TestConstants.PASSWORD)
-    def "GET /cats/{id} should return cat by id"() {
+    def "should get all cats"() {
         given:
-        Cat cat = catRepository.save(new Cat(name: "Mariot", breed: "Persian", age: 6, color: "Yellow", dateOfBirth: new Date()))
+        Cat cat1 = new Cat(name: "Mariot", breed: "Persian", age: 6, color: "Yellow")
+        List<Cat> catsList = [cat1]
+        catService.getAllCats(_ as Pageable) >> catsList // Mock the service to return a list of cats
 
-        expect:
-        mockMvc.perform(get("/cats/${cat.id}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath('$.name').value("Mariot"))
+        when:
+        ResponseEntity<List<Cat>> response = catController.getAllCats(PageRequest.of(0, 10))
+
+        then:
+        response.statusCodeValue == 200
+        response.body.size() == 1
+        response.body[0].name == "Mariot"
     }
 
-    @WithMockUser(username = TestConstants.USERNAME, password = TestConstants.PASSWORD)
-    def "GET /cats/{id} should return not found if cat does not exist"() {
-        expect:
-        mockMvc.perform(get("/cats/999"))
-                .andExpect(status().isNotFound())
-    }
-
-    @WithMockUser(username = TestConstants.USERNAME, password = TestConstants.PASSWORD)
-    def "PUT /cats/{id} should update an existing cat"() {
+    def "should get cat by id"() {
         given:
-        Cat cat = catRepository.save(new Cat(name: "Falco", breed: "Maine", age: 1, color: "Brown", dateOfBirth: new Date()))
+        Long catId = 1L
+        Cat cat = new Cat(id: catId, name: "Falco", breed: "Maine", age: 1, color: "Brown")
+        catService.getCatById(catId) >> cat // Mock the service to return the specific cat
 
-        expect:
-        mockMvc.perform(put("/cats/${cat.id}")
-                .with(csrf())
-                .contentType("application/json")
-                .content('{"name":"Falco","breed":"Maine","age":1,"color":"Brown","dateOfBirth":"2024-10-05"}'))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath('$.age').value(1))
+        when:
+        ResponseEntity<Cat> response = catController.getCatById(catId)
+
+        then:
+        response.statusCodeValue == 200
+        response.body.id == catId
+        response.body.name == "Falco"
     }
 
-    @WithMockUser(username = TestConstants.USERNAME, password = TestConstants.PASSWORD)
-    def "PUT /cats/{id} should return not found if cat does not exist"() {
-        expect:
-        mockMvc.perform(put("/cats/999")
-                .with(csrf())
-                .contentType("application/json")
-                .content('{"name":"Mari","breed":"Bombay","age":7,"color":"Black","dateOfBirth":"2024-09-04"}'))
-                .andExpect(status().isNotFound())
-    }
-
-    @WithMockUser(username = TestConstants.USERNAME, password = TestConstants.PASSWORD)
-    def "DELETE /cats/{id} should delete an existing cat"() {
+    def "should return not found when getting cat by id that does not exist"() {
         given:
-        Cat cat = catRepository.save(new Cat(name: "Rex", breed: "Bobtail", age: 2, color: "Brown", dateOfBirth: new Date()))
+        Long nonExistentCatId = 999L
 
-        expect:
-        mockMvc.perform(delete("/cats/${cat.id}")
-                .with(csrf()))
-                .andExpect(status().isNoContent())
+        catService.getCatById(nonExistentCatId) >> { throw new CatNotFoundException("Cat not found") }
+
+        when:
+        ResponseEntity<Cat> response = catController.getCatById(nonExistentCatId)
+
+        then:
+        response.statusCodeValue == 404
+        response.body == null
     }
 
-    @WithMockUser(username = TestConstants.USERNAME, password = TestConstants.PASSWORD)
-    def "DELETE /cats/{id} should return not found if cat does not exist"() {
-        expect:
-        mockMvc.perform(delete("/cats/999")
-                .with(csrf()))
-                .andExpect(status().isNotFound())
+    def "should update a cat"() {
+        given:
+        Long catId = 1L
+        Cat existingCat = new Cat(id: catId, name: "Whiskers", breed: "Tabby", age: 3, color: "Brown")
+        Cat updatedCat = new Cat(name: "Whiskers", breed: "Siamese", age: 4, color: "White")
+        catService.updateCat(catId, updatedCat) >> existingCat.with { it.name = "Whiskers"; it.breed = "Siamese"; it.age = 4; it.color = "White"; it } // Mock the update
+
+        when:
+        ResponseEntity<Cat> response = catController.updateCat(catId, updatedCat)
+
+        then:
+        response.statusCodeValue == 200
+        response.body.name == "Whiskers"
+        response.body.breed == "Siamese"
+    }
+
+    def "should return not found when updating a cat that does not exist"() {
+        given:
+        Long catId = 999L
+        Cat updatedCat = new Cat(name: "Mari", breed: "Bombay", age: 7, color: "Black")
+        catService.updateCat(catId, updatedCat) >> { throw new CatNotFoundException("Cat not found") } // Mock to throw an exception
+
+        when:
+        ResponseEntity<Cat> response = catController.updateCat(catId, updatedCat)
+
+        then:
+        response.statusCodeValue == 404
+    }
+
+    def "should delete a cat"() {
+        given:
+        Long catId = 1L
+        catService.deleteCat(catId) // Just mock the deletion
+
+        when:
+        ResponseEntity<Void> response = catController.deleteCat(catId)
+
+        then:
+        response.statusCodeValue == 204 // No content
+    }
+
+    def "should return not found when deleting a cat that does not exist"() {
+        given:
+        Long catId = 999L
+        catService.deleteCat(catId) >> { throw new CatNotFoundException("Cat not found") } // Mock to throw an exception
+
+        when:
+        ResponseEntity<Void> response = catController.deleteCat(catId)
+
+        then:
+        response.statusCodeValue == 404
     }
 }
